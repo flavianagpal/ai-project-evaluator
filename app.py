@@ -3,6 +3,10 @@ import base64
 import math
 from datetime import datetime, timezone
 
+from repository_structure import get_repo_structure
+from engineering_signals import detect_engineering_signals
+from engineering_review import build_engineering_review
+from engineering_score import calculate_engineering_score
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -17,9 +21,11 @@ def _get(url: str, params: dict | None = None, token: str | None = None) -> requ
 # ── Data-fetch layer ──────────────────────────────────────────────────────────
 
 def get_repo_data(owner: str, repo: str, token: str | None = None) -> dict | None:
-    r = _get(f"https://api.github.com/repos/{owner}/{repo}", token=token)
-    return r.json() if r.status_code == 200 else None
+    url = f"https://api.github.com/repos/{owner}/{repo}"
 
+    r = _get(url, token=token)
+
+    return r.json() if r.status_code == 200 else None
 
 def get_readme_content(owner: str, repo: str, token: str | None = None) -> str:
     r = _get(f"https://api.github.com/repos/{owner}/{repo}/readme", token=token)
@@ -312,8 +318,17 @@ def compute_score(
 
 def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None:
     data = get_repo_data(owner, repo, token)
+    print("DATA:", data)
     if data is None:
         return None
+    structure=get_repo_structure(
+        owner,repo,token)
+    
+    signals = detect_engineering_signals(structure)
+    eng_strengths, eng_weaknesses = build_engineering_review(signals)
+    engineering_score = calculate_engineering_score(signals)
+
+  
 
     readme = get_readme_content(owner, repo, token)
     commit_count = get_commit_count(owner, repo, token)
@@ -337,6 +352,7 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
         "forks": data.get("forks_count", 0),
         "open_issues": open_issues,
         "commits": commit_count,
+        "structure": structure,
         "contributors": contributor_count,
         "releases": release_count,
         "topics": data.get("topics", []),
@@ -350,6 +366,10 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
         "strengths": strengths,
         "weaknesses": weaknesses,
         "readme_length": len(readme),
+        "engineering_signals": signals,
+        "engineering_strengths": eng_strengths,
+        "engineering_weaknesses": eng_weaknesses,
+        "engineering_score": engineering_score
     }
 
 

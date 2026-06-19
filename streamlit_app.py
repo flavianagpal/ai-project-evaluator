@@ -240,6 +240,7 @@ if analyze_clicked:
                         <div class="val">{val}</div>
                         <div class="lbl">{lbl}</div>
                     </div>""", unsafe_allow_html=True)
+            
 
             # ── Repo meta ──────────────────────────────────────────────────
             st.markdown(f'<div class="section-header">Repository</div>', unsafe_allow_html=True)
@@ -267,19 +268,36 @@ if analyze_clicked:
                         <a href="{result['homepage']}" target="_blank" style="color:#58a6ff; font-size:.88rem; word-break:break-all;">{result['homepage']}</a>
                     </div>""", unsafe_allow_html=True)
 
+
+            st.markdown('<div class="section-header">Engineering Quality</div>',unsafe_allow_html=True)
+      
+            st.metric("Engineering Score",f'{result["engineering_score"]}/100')
+            
+            # ── Engineering Analysis ───────────────────────────
+
+            st.markdown('<div class="section-header">Engineering Analysis</div>',unsafe_allow_html=True)
+
+            eng1, eng2 = st.columns(2)
+
+            with eng1:
+                st.markdown("### ✅ Engineering Strengths")
+
+                for item in result["engineering_strengths"]:
+                    st.success(item)
+
+            with eng2:
+                st.markdown("### ⚠ Engineering Gaps")
+
+                for item in result["engineering_weaknesses"]:
+                    st.warning(item)
+
             # ── Score breakdown charts ─────────────────────────────────────
             st.markdown(f'<div class="section-header">Score Breakdown</div>', unsafe_allow_html=True)
             ch1, ch2 = st.columns(2)
             with ch1:
-                st.plotly_chart(
-    radar_chart(result["breakdown"]),
-    width="stretch"
-)
+                st.plotly_chart(radar_chart(result["breakdown"]),width="stretch")
             with ch2:
-                st.plotly_chart(
-    bar_chart(result["breakdown"]),
-    width="stretch"
-)
+                st.plotly_chart(bar_chart(result["breakdown"]),width="stretch")
 
             # ── Strengths & Weaknesses ─────────────────────────────────────
             st.markdown(f'<div class="section-header">Findings</div>', unsafe_allow_html=True)
