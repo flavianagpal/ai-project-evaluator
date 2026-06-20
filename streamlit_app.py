@@ -240,8 +240,31 @@ if analyze_clicked:
                         <div class="val">{val}</div>
                         <div class="lbl">{lbl}</div>
                     </div>""", unsafe_allow_html=True)
-            
+            st.markdown(
+                '<div class="section-header">Repository Health</div>',unsafe_allow_html=True)
 
+            assessment = result["assessment"]
+
+            st.success(f"Overall Verdict: {assessment['verdict']}")
+            c1, c2 = st.columns(2)
+
+            with c1:
+                st.markdown("### Strengths")
+
+                for item in assessment["positives"]:
+                    st.success(item)
+
+            with c2:
+                st.markdown("### Risks")
+
+                if assessment["concerns"]:
+                    for item in assessment["concerns"]:
+                        st.warning(item)
+                else:
+                    st.success("No major risks detected")
+                    
+
+               
             # ── Repo meta ──────────────────────────────────────────────────
             st.markdown(f'<div class="section-header">Repository</div>', unsafe_allow_html=True)
             mc1, mc2 = st.columns([3, 2])
@@ -268,10 +291,49 @@ if analyze_clicked:
                         <a href="{result['homepage']}" target="_blank" style="color:#58a6ff; font-size:.88rem; word-break:break-all;">{result['homepage']}</a>
                     </div>""", unsafe_allow_html=True)
 
+            st.markdown('<div class="section-header">Technology Stack</div>',unsafe_allow_html=True)
+            tech = result["technologies"]
 
+            t1, t2, t3 = st.columns(3)
+
+            with t1:
+                st.markdown("### Backend")
+
+                for item in tech["backend"]:
+                    st.info(item)
+
+            with t2:
+                st.markdown("### Frontend")
+
+                if result["frontend_stack"]:
+
+                    for item in result["frontend_stack"]:
+                        st.info(item)
+
+                elif tech["frontend"]:
+
+                    for item in tech["frontend"]:
+                        st.info(item)
+
+                else:
+                    st.caption("Not detected")
+            with t3:
+                st.markdown("### Infrastructure")
+
+                for item in tech["infrastructure"]:
+                    st.info(item)
             st.markdown('<div class="section-header">Engineering Quality</div>',unsafe_allow_html=True)
       
             st.metric("Engineering Score",f'{result["engineering_score"]}/100')
+
+
+            st.markdown('<div class="section-header">Detected Libraries</div>',unsafe_allow_html=True)
+
+            dep_cols = st.columns(4)
+
+            for i, dep in enumerate(result["dependencies"]):
+                with dep_cols[i % 4]:
+                    st.info(dep)
             
             # ── Engineering Analysis ───────────────────────────
 

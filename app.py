@@ -7,6 +7,10 @@ from repository_structure import get_repo_structure
 from engineering_signals import detect_engineering_signals
 from engineering_review import build_engineering_review
 from engineering_score import calculate_engineering_score
+from technology_detector import detect_technologies
+from dependency_parser import (get_file_content,detect_dependencies,detect_frontend_stack)
+from health_assessment import generate_health_assessment
+
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -318,15 +322,21 @@ def compute_score(
 
 def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None:
     data = get_repo_data(owner, repo, token)
-    print("DATA:", data)
+
     if data is None:
         return None
-    structure=get_repo_structure(
-        owner,repo,token)
+   
+    structure=get_repo_structure(owner,repo,token)
     
     signals = detect_engineering_signals(structure)
     eng_strengths, eng_weaknesses = build_engineering_review(signals)
     engineering_score = calculate_engineering_score(signals)
+    technologies = detect_technologies(structure)
+    frontend_package = get_file_content(owner,repo,"frontend/package.json",token)
+    frontend_stack = detect_frontend_stack(frontend_package)
+    pyproject_content = get_file_content(owner,repo,"pyproject.toml",token)
+    dependencies = detect_dependencies(pyproject_content)
+  
 
   
 
@@ -335,14 +345,15 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
     contributor_count = get_contributor_count(owner, repo, token)
     has_license = get_has_license(owner, repo, token)
     has_ci = get_has_ci(owner, repo, token)
-    open_issues = get_open_issues_count(owner, repo, token)
+    open_issues = data.get("open_issues_count", 0)
     release_count = get_release_count(owner, repo, token)
 
-    score, strengths, weaknesses, breakdown = compute_score(
-        data, readme, commit_count, contributor_count,
+    score, strengths, weaknesses, breakdown = compute_score(data, readme, commit_count, contributor_count,
         has_license, has_ci, open_issues, release_count,
     )
-
+    assessment = generate_health_assessment({"score": score,"engineering_score": engineering_score,"contributors": contributor_count,
+            "has_ci": has_ci,"releases": release_count,"open_issues": open_issues,"engineering_weaknesses": eng_weaknesses})
+    print("ASSESSMENT:", assessment)
     return {
         "name": data["name"],
         "full_name": data.get("full_name", f"{owner}/{repo}"),
@@ -369,7 +380,11 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
         "engineering_signals": signals,
         "engineering_strengths": eng_strengths,
         "engineering_weaknesses": eng_weaknesses,
-        "engineering_score": engineering_score
+        "engineering_score": engineering_score,
+        "technologies": technologies,
+        "dependencies": dependencies,
+        "frontend_stack": frontend_stack,
+        "assessment": assessment
     }
 
 
