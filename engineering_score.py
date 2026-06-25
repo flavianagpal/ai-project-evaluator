@@ -1,5 +1,4 @@
 def calculate_engineering_score(signals):
-
     score = 0
 
     if signals["has_tests"]:
@@ -19,8 +18,8 @@ def calculate_engineering_score(signals):
 
     return score
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     signals = {
         "has_tests": True,
         "has_docs": True,

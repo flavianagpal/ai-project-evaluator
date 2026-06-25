@@ -1,0 +1,558 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* =========================================================
+   Base
+========================================================= */
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+
+:root {
+    --bg:       #0b1120;
+    --surface:  #111827;
+    --surface-2:#0f172a;
+    --border:   rgba(255,255,255,.08);
+    --border-md:rgba(255,255,255,.12);
+    --text:     #f1f5f9;
+    --muted:    #94a3b8;
+    --hint:     #4b5a6e;
+    --blue:     #378ADD;
+    --blue-bg:  rgba(55,138,221,.08);
+    --green:    #1D9E75;
+    --green-bg: rgba(29,158,117,.08);
+    --amber:    #BA7517;
+    --amber-bg: rgba(186,117,23,.08);
+    --red:      #E24B4A;
+    --red-bg:   rgba(226,75,74,.08);
+}
+
+.stApp {
+    background: var(--bg);
+}
+
+.main .block-container {
+    padding-top: 2.25rem;
+    max-width: 1100px;
+    padding-bottom: 4rem;
+}
+
+/* =========================================================
+   Hero
+========================================================= */
+.hero {
+    padding: 0 0 1.5rem;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 1.75rem;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--blue-bg);
+    color: var(--blue);
+    border: 0.5px solid rgba(55,138,221,.22);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    margin-bottom: .9rem;
+}
+
+.hero h1 {
+    font-size: 1.75rem;
+    line-height: 1.15;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 .45rem;
+    letter-spacing: -.035em;
+}
+
+.hero p {
+    color: var(--muted);
+    font-size: .9rem;
+    line-height: 1.65;
+    margin: 0;
+    max-width: 580px;
+}
+
+/* =========================================================
+   Inputs
+========================================================= */
+div[data-testid="stTextInput"] input {
+    background: var(--surface-2) !important;
+    border: 0.5px solid var(--border-md) !important;
+    border-radius: 8px !important;
+    color: var(--text) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: .875rem !important;
+    padding: .72rem 1rem !important;
+    height: 42px !important;
+    transition: border-color .15s, box-shadow .15s !important;
+}
+
+div[data-testid="stTextInput"] input:focus {
+    border-color: var(--blue) !important;
+    box-shadow: 0 0 0 3px rgba(55,138,221,.12) !important;
+}
+
+div[data-testid="stTextInput"] input::placeholder {
+    color: var(--hint) !important;
+}
+
+div[data-testid="stButton"] > button {
+    background: var(--text) !important;
+    color: var(--bg) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: .875rem !important;
+    padding: .72rem 1.25rem !important;
+    height: 42px !important;
+    transition: opacity .15s, transform .1s !important;
+}
+
+div[data-testid="stButton"] > button:hover {
+    opacity: .88 !important;
+    transform: translateY(-1px) !important;
+}
+
+div[data-testid="stButton"] > button:active {
+    transform: scale(.98) !important;
+}
+
+/* =========================================================
+   Section headers
+========================================================= */
+.section-header {
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin: 1.75rem 0 .85rem;
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+}
+
+.section-header::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: var(--border);
+}
+
+/* =========================================================
+   Metric cards
+========================================================= */
+.metric-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: .9rem 1rem;
+    min-height: 86px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.metric-card .lbl {
+    font-size: .7rem;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: .3rem;
+}
+
+.metric-card .val {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+    letter-spacing: -.02em;
+}
+
+.metric-card .sub {
+    font-size: .7rem;
+    color: var(--hint);
+    margin-top: .25rem;
+}
+
+/* =========================================================
+   Generic dashboard cards
+========================================================= */
+.dashboard-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+}
+
+.repo-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: .3rem;
+}
+
+.repo-desc {
+    color: var(--muted);
+    font-size: .875rem;
+    line-height: 1.6;
+    margin-bottom: .85rem;
+}
+
+.repo-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem .9rem;
+    color: var(--muted);
+    font-size: .78rem;
+}
+
+.topic-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 5px;
+    background: var(--surface-2);
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    font-size: .75rem;
+    font-weight: 500;
+    margin: 0 4px 4px 0;
+}
+
+.topic-chip-blue {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 5px;
+    background: var(--blue-bg);
+    border: 0.5px solid rgba(55,138,221,.2);
+    color: var(--blue);
+    font-size: .75rem;
+    font-weight: 500;
+    margin: 0 4px 4px 0;
+}
+
+/* =========================================================
+   Score badge
+========================================================= */
+.score-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border: 2px solid;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+}
+
+.score-excellent {
+    color: var(--green);
+    border-color: var(--green);
+    background: var(--green-bg);
+}
+
+.score-good {
+    color: var(--blue);
+    border-color: var(--blue);
+    background: var(--blue-bg);
+}
+
+.score-fair {
+    color: var(--amber);
+    border-color: var(--amber);
+    background: var(--amber-bg);
+}
+
+.score-poor {
+    color: var(--red);
+    border-color: var(--red);
+    background: var(--red-bg);
+}
+
+/* =========================================================
+   Verdict card
+========================================================= */
+.verdict-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.verdict-label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin-bottom: .4rem;
+    font-weight: 600;
+}
+
+.verdict-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: .4rem;
+}
+
+.verdict-sub {
+    color: var(--muted);
+    font-size: .86rem;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   Strength / weakness pills
+========================================================= */
+.pill {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    background: var(--surface);
+    border-radius: 8px;
+    padding: .75rem .9rem;
+    margin-bottom: .5rem;
+    border: 0.5px solid var(--border);
+    border-left-width: 3px;
+}
+
+.pill-strength {
+    border-left-color: var(--green);
+}
+
+.pill-weakness {
+    border-left-color: var(--red);
+}
+
+.pill-label {
+    font-weight: 500;
+    font-size: .875rem;
+    color: var(--text);
+    margin-bottom: .15rem;
+}
+
+.pill-detail {
+    font-size: .8rem;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+/* =========================================================
+   Tech / dependency tags
+========================================================= */
+.tech-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: .45rem .8rem;
+    border-radius: 7px;
+    background: var(--surface-2);
+    border: 0.5px solid var(--border);
+    color: var(--text);
+    font-size: .82rem;
+    font-weight: 500;
+    margin: 0 .4rem .4rem 0;
+}
+
+.dep-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: .45rem .8rem;
+    border-radius: 999px;
+    background: var(--blue-bg);
+    border: 0.5px solid rgba(55,138,221,.2);
+    color: var(--blue);
+    font-size: .8rem;
+    font-weight: 500;
+    margin: 0 .4rem .4rem 0;
+}
+
+/* =========================================================
+   Signal checklist
+========================================================= */
+.signal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+}
+
+.signal-item {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: .65rem .85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.signal-name {
+    color: var(--text);
+    font-size: .82rem;
+    font-weight: 500;
+}
+
+.signal-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.signal-yes {
+    background: rgba(29,158,117,.12);
+    color: #5DCAA5;
+}
+
+.signal-no {
+    background: rgba(226,75,74,.12);
+    color: #F09595;
+}
+
+/* =========================================================
+   Recommendation / risk note cards
+========================================================= */
+.note-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-left-width: 3px;
+    border-radius: 8px;
+    padding: .8rem .95rem;
+    margin-bottom: .5rem;
+    line-height: 1.6;
+    font-size: .86rem;
+    color: var(--muted);
+    border-radius: 8px;
+}
+
+.note-positive {
+    border-left-color: var(--green);
+}
+
+.note-warning {
+    border-left-color: var(--amber);
+}
+
+.note-info {
+    border-left-color: var(--blue);
+}
+
+.note-title {
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: .3rem;
+}
+
+.note-positive .note-title { color: var(--green); }
+.note-warning  .note-title { color: var(--amber); }
+.note-info     .note-title { color: var(--blue);  }
+
+/* =========================================================
+   Streamlit native component overrides
+========================================================= */
+div[data-testid="stMetric"] {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: .9rem 1rem;
+    border-radius: 12px;
+}
+
+div[data-testid="stMetricLabel"] {
+    color: var(--muted) !important;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: .7rem !important;
+    font-weight: 600 !important;
+}
+
+div[data-testid="stMetricValue"] {
+    color: var(--text) !important;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600 !important;
+    letter-spacing: -.02em;
+}
+
+div[data-testid="stMetricDelta"] {
+    font-size: .75rem !important;
+}
+
+div[data-testid="stAlert"] {
+    background: var(--surface) !important;
+    border: 0.5px solid var(--border) !important;
+    border-radius: 8px !important;
+}
+
+div[data-testid="stExpander"] {
+    background: var(--surface) !important;
+    border: 0.5px solid var(--border) !important;
+    border-radius: 8px !important;
+}
+
+div[data-testid="stTabs"] [data-baseweb="tab-list"] {
+    background: transparent !important;
+    border-bottom: 0.5px solid var(--border) !important;
+    gap: 0 !important;
+}
+
+div[data-testid="stTabs"] [data-baseweb="tab"] {
+    background: transparent !important;
+    color: var(--muted) !important;
+    font-size: .84rem !important;
+    font-weight: 500 !important;
+    padding: .6rem 1rem !important;
+    border-bottom: 2px solid transparent !important;
+}
+
+div[data-testid="stTabs"] [aria-selected="true"] {
+    color: var(--text) !important;
+    border-bottom-color: var(--blue) !important;
+}
+
+/* =========================================================
+   Scrollbar
+========================================================= */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-md);
+    border-radius: 99px;
+}
+
+/* =========================================================
+   Hide Streamlit chrome
+========================================================= */
+#MainMenu,
+footer {
+    visibility: hidden;
+}
+
+div[data-testid="stDecoration"] {
+    display: none;
+}

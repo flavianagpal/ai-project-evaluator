@@ -2,7 +2,10 @@ import requests
 
 
 def get_file_content(owner, repo, filepath, token=None):
-
+    """
+    Fetch a file from a GitHub repository using the contents API.
+    Returns the raw text content, or None if the file doesn't exist.
+    """
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{filepath}"
 
     headers = {
@@ -23,7 +26,7 @@ def get_file_content(owner, repo, filepath, token=None):
 
     data = response.json()
 
-    if "download_url" not in data:
+    if "download_url" not in data or not data["download_url"]:
         return None
 
     raw = requests.get(
@@ -31,16 +34,23 @@ def get_file_content(owner, repo, filepath, token=None):
         timeout=10
     )
 
+    if raw.status_code != 200:
+        return None
+
     return raw.text
 
+
 def detect_dependencies(text):
-
-    found = []
-
+    """
+    Lightweight dependency detector from a raw text file.
+    Kept mainly for local testing / fallback use.
+    RepoLens production flow uses dependency_detector.py for main library detection.
+    """
     if not text:
-        return found
+        return []
 
     text = text.lower()
+    found = []
 
     checks = {
         "streamlit": "Streamlit",
@@ -55,23 +65,24 @@ def detect_dependencies(text):
         "transformers": "Transformers",
         "torch": "PyTorch",
         "tensorflow": "TensorFlow",
-        "scikit-learn": "Scikit-Learn"
+        "scikit-learn": "Scikit-Learn",
     }
 
     for key, label in checks.items():
-
         if key in text:
             found.append(label)
 
-    return sorted(found)
+    return sorted(set(found))
+
 
 def detect_frontend_stack(text):
-
+    """
+    Detect common frontend technologies from package.json content.
+    """
     if not text:
         return []
 
     text = text.lower()
-
     found = []
 
     checks = {
@@ -81,25 +92,25 @@ def detect_frontend_stack(text):
         "angular": "Angular",
         "typescript": "TypeScript",
         "tailwind": "Tailwind CSS",
-        "vite": "Vite"
+        "vite": "Vite",
     }
 
     for key, label in checks.items():
         if key in text:
             found.append(label)
 
-    return sorted(found)
+    return sorted(set(found))
+
 
 if __name__ == "__main__":
-
     content = get_file_content(
         "streamlit",
         "streamlit",
         "pyproject.toml"
     )
 
-    print(content[:500])
-
-    print(
-        detect_dependencies(content)
-    )
+    if content:
+        print(content[:500])
+        print(detect_dependencies(content))
+    else:
+        print("File not found.")
