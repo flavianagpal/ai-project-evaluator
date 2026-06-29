@@ -6,41 +6,31 @@ def build_engineering_review(signals):
     strengths = []
     weaknesses = []
 
-    # --------------------------------------------------
-    # Tests
-    # --------------------------------------------------
+    
     if signals.get("has_tests", False):
         strengths.append("Automated testing infrastructure detected")
     else:
         weaknesses.append("No automated test suite detected in the repository tree")
 
-    # --------------------------------------------------
-    # Documentation
-    # --------------------------------------------------
+   
     if signals.get("has_docs", False):
         strengths.append("Documentation resources and contributor guidance are present")
     else:
         weaknesses.append("Documentation resources were not clearly detected")
 
-    # --------------------------------------------------
-    # CI / CD
-    # --------------------------------------------------
+    
     if signals.get("has_ci", False):
         strengths.append("CI/CD workflow configuration detected")
     else:
         weaknesses.append("No CI/CD workflow configuration detected")
 
-    # --------------------------------------------------
-    # Docker / Containerization
-    # --------------------------------------------------
+    
     if signals.get("has_docker", False):
         strengths.append("Containerization or development environment support detected")
     else:
         weaknesses.append("No Docker or dev-container configuration detected")
 
-    # --------------------------------------------------
-    # Dependency Management
-    # --------------------------------------------------
+    
     if signals.get("has_dependency_management", False):
         strengths.append("Dependency management files are configured")
     else:

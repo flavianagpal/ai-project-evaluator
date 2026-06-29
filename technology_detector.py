@@ -17,9 +17,7 @@ def detect_technologies(structure):
 
     structure_lower = [item.lower() for item in structure]
 
-    # --------------------------------------------------
-    # Backend technologies
-    # --------------------------------------------------
+
     if any(
         item.endswith("requirements.txt")
         or item.endswith("pyproject.toml")
@@ -66,9 +64,7 @@ def detect_technologies(structure):
     ):
         tech["backend"].append("PHP")
 
-    # --------------------------------------------------
-    # Frontend / JavaScript ecosystem
-    # --------------------------------------------------
+   
     has_node = any(
         item.endswith("package.json")
         or item.endswith("package-lock.json")
@@ -90,7 +86,7 @@ def detect_technologies(structure):
     if any("tailwind.config" in item for item in structure_lower):
         tech["frontend"].append("Tailwind CSS")
 
-    # Heuristics for React / Vue / Angular based on common repo patterns
+   
     if any(
         "src/app.tsx" in item
         or "src/index.tsx" in item
@@ -106,9 +102,7 @@ def detect_technologies(structure):
     if any("nuxt.config" in item or "vue.config" in item for item in structure_lower):
         tech["frontend"].append("Vue")
 
-    # --------------------------------------------------
-    # Infrastructure
-    # --------------------------------------------------
+    
     if any(
         "dockerfile" in item
         or "docker-compose" in item
@@ -139,9 +133,7 @@ def detect_technologies(structure):
     ):
         tech["infrastructure"].append("Kubernetes")
 
-    # --------------------------------------------------
-    # Clean duplicates
-    # --------------------------------------------------
+   
     tech["backend"] = sorted(set(tech["backend"]))
     tech["frontend"] = sorted(set(tech["frontend"]))
     tech["infrastructure"] = sorted(set(tech["infrastructure"]))

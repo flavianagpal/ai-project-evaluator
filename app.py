@@ -12,9 +12,9 @@ from dependency_parser import get_file_content, detect_frontend_stack
 from health_assessment import generate_health_assessment
 from recommendations import generate_recommendations
 from dependency_detector import detect_dependencies_from_files
+from ai_summary import generate_ai_summary
 
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
 
 def _get(url: str, params: dict | None = None, token: str | None = None) -> requests.Response:
     """Central HTTP helper — injects auth token when provided."""
@@ -43,7 +43,7 @@ def find_file_in_structure(structure: list[str], filenames: list[str]) -> str | 
     return None
 
 
-# ── Data-fetch layer ──────────────────────────────────────────────────────────
+
 
 def get_repo_data(owner: str, repo: str, token: str | None = None) -> dict | None:
     url = f"https://api.github.com/repos/{owner}/{repo}"
@@ -123,7 +123,7 @@ def get_has_ci(owner: str, repo: str, token: str | None = None) -> bool:
     if r.status_code == 200 and isinstance(r.json(), list) and len(r.json()) > 0:
         return True
 
-    # Common CI files at root
+    
     for ci_file in [".travis.yml", "Jenkinsfile", ".circleci/config.yml", "azure-pipelines.yml"]:
         r2 = _get(
             f"https://api.github.com/repos/{owner}/{repo}/contents/{ci_file}",
@@ -165,7 +165,6 @@ def get_release_count(owner: str, repo: str, token: str | None = None) -> int:
     return len(r.json())
 
 
-# ── Scoring engine ────────────────────────────────────────────────────────────
 
 def _days_since(iso_str: str) -> int:
     """How many days ago was an ISO-8601 timestamp?"""
@@ -204,7 +203,7 @@ def compute_score(
     """
     breakdown: list[dict] = []
 
-    # ── 1. Documentation (25 pts) ─────────────────────────────────────────
+    
     doc_pts = 0
     if readme:
         doc_pts += 5
@@ -237,7 +236,7 @@ def compute_score(
         "max": 25
     })
 
-    # ── 2. Maintenance & activity (25 pts) ────────────────────────────────
+    
     act_pts = 0
     days_since_push = _days_since(data.get("pushed_at", ""))
 
@@ -259,7 +258,7 @@ def compute_score(
         "max": 25
     })
 
-    # ── 3. Community & popularity (20 pts) ────────────────────────────────
+    
     comm_pts = 0
     stars = data.get("stargazers_count", 0)
     forks = data.get("forks_count", 0)
@@ -274,7 +273,7 @@ def compute_score(
         "max": 20
     })
 
-    # ── 4. Project hygiene (20 pts) ───────────────────────────────────────
+    
     hyg_pts = 0
     if data.get("description"):
         hyg_pts += 4
@@ -293,7 +292,7 @@ def compute_score(
         "max": 20
     })
 
-    # ── 5. Issue health (10 pts) ──────────────────────────────────────────
+    
     issue_pts = 0
     if data.get("has_issues"):
         issue_pts += 2
@@ -322,7 +321,7 @@ def compute_score(
     weaknesses = []
     rl_lower = readme.lower() if readme else ""
 
-    # Documentation
+    
     if breakdown[0]["points"] >= 18:
         strengths.append({
             "label": "Excellent documentation",
@@ -362,7 +361,7 @@ def compute_score(
                 "detail": f"Add a {label.lower()} section to help new users."
             })
 
-    # Activity
+
     if days_since_push < 30:
         strengths.append({
             "label": "Actively maintained",
@@ -396,7 +395,7 @@ def compute_score(
             "detail": "Publish versioned releases so users can track changes."
         })
 
-    # Community
+
     if stars > 1000:
         strengths.append({
             "label": "Highly popular",
@@ -419,7 +418,6 @@ def compute_score(
             "detail": "Only 1 contributor — consider inviting collaborators."
         })
 
-    # Hygiene
     if not data.get("description"):
         weaknesses.append({
             "label": "No description",
@@ -457,7 +455,7 @@ def compute_score(
     return total, strengths, weaknesses, breakdown
 
 
-# ── Public API ────────────────────────────────────────────────────────────────
+
 
 def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None:
     data = get_repo_data(owner, repo, token)
@@ -466,15 +464,14 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
 
     structure = get_repo_structure(owner, repo, token)
 
-    # Engineering analysis
+    
     signals = detect_engineering_signals(structure)
     eng_strengths, eng_weaknesses = build_engineering_review(signals)
     engineering_score = calculate_engineering_score(signals)
 
-    # Technology / dependency detection
+    
     technologies = detect_technologies(structure)
 
-    # Locate dependency files from full repo structure
     pyproject_path = find_file_in_structure(structure, ["pyproject.toml"])
     requirements_path = find_file_in_structure(structure, ["requirements.txt"])
     package_json_path = find_file_in_structure(structure, ["package.json"])
@@ -491,7 +488,6 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
         package_json_content,
     )
 
-    # Repository metadata
     readme = get_readme_content(owner, repo, token)
     commit_count = get_commit_count(owner, repo, token)
     contributor_count = get_contributor_count(owner, repo, token)
@@ -500,7 +496,7 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
     open_issues = get_open_issues_count(owner, repo, token)
     release_count = get_release_count(owner, repo, token)
 
-    # Main score
+  
     score, strengths, weaknesses, breakdown = compute_score(
         data,
         readme,
@@ -512,7 +508,7 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
         release_count,
     )
 
-    # Repo health assessment
+
     assessment = generate_health_assessment({
         "score": score,
         "engineering_score": engineering_score,
@@ -523,13 +519,32 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
         "engineering_weaknesses": eng_weaknesses,
     })
 
-    # Recommendations
+   
     recommendations = generate_recommendations({
         "engineering_signals": signals,
         "open_issues": open_issues,
         "releases": release_count,
     })
-
+    ai_input = {
+    "name": data["name"],
+    "description": data.get("description") or "No description",
+    "language": data.get("language") or "Unknown",
+    "stars": data.get("stargazers_count", 0),
+    "forks": data.get("forks_count", 0),
+    "contributors": contributor_count,
+    "open_issues": open_issues,
+    "releases": release_count,
+    "score": score,
+    "engineering_score": engineering_score,
+    "technologies": technologies,
+    "dependencies": dependencies,
+    "engineering_strengths": eng_strengths,
+    "engineering_weaknesses": eng_weaknesses,
+    "recommendations": recommendations,
+    "assessment": assessment,
+}
+    ai_summary = generate_ai_summary(ai_input)
+    print(ai_summary)
     return {
         "name": data["name"],
         "full_name": data.get("full_name", f"{owner}/{repo}"),
@@ -562,6 +577,7 @@ def analyze_repo(owner: str, repo: str, token: str | None = None) -> dict | None
         "frontend_stack": frontend_stack,
         "assessment": assessment,
         "recommendations": recommendations,
+        "ai_summary": ai_summary,
     }
 
 

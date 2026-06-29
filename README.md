@@ -89,19 +89,17 @@ RepoLens scores repositories across several dimensions:
 ```bash
 RepoLens/
 │
-├── streamlit_app.py          # Streamlit dashboard UI
-├── app.py                    # Main repository analysis pipeline
+├── streamlit_app.py          
+├── app.py                    
 │
-├── repository_structure.py   # Recursive GitHub repository tree fetch
-├── engineering_signals.py    # Detect tests, docs, CI, Docker, dependencies
-├── engineering_review.py     # Convert engineering signals into strengths / gaps
-├── engineering_score.py      # Engineering score calculation
-├── technology_detector.py    # Detect backend / frontend / infrastructure technologies
-├── dependency_detector.py    # Parse dependency files and detect major libraries
-├── dependency_parser.py      # Fetch repo files and detect frontend stack
-├── health_assessment.py      # Generate repository health verdict + positives / concerns
-├── recommendations.py        # Generate improvement recommendations
-│
-├── style.css                 # Custom dashboard styling
+├── repository_structure.py   
+├── engineering_signals.py    
+├── engineering_review.py     
+├── engineering_score.py      
+├── technology_detector.py    
+├── dependency_detector.py    
+├── dependency_parser.py     
+├── recommendations.py       
+├── style.css                
 ├── requirements.txt
 └── README.md

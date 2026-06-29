@@ -23,9 +23,7 @@ def detect_engineering_signals(structure):
         "has_dependency_management": False
     }
 
-    # --------------------------------------------------
-    # Tests
-    # --------------------------------------------------
+   
     test_indicators = [
         "tests",
         "test",
@@ -46,9 +44,7 @@ def detect_engineering_signals(structure):
     ):
         signals["has_tests"] = True
 
-    # --------------------------------------------------
-    # Documentation
-    # --------------------------------------------------
+   
     doc_indicators = [
         "readme",
         "docs",
@@ -66,9 +62,7 @@ def detect_engineering_signals(structure):
     ):
         signals["has_docs"] = True
 
-    # --------------------------------------------------
-    # CI / CD
-    # --------------------------------------------------
+    
     ci_indicators = [
         ".github/workflows",
         ".gitlab-ci.yml",
@@ -84,9 +78,7 @@ def detect_engineering_signals(structure):
     ):
         signals["has_ci"] = True
 
-    # --------------------------------------------------
-    # Docker / Containerization
-    # --------------------------------------------------
+   
     docker_indicators = [
         "dockerfile",
         "docker-compose",
@@ -102,9 +94,6 @@ def detect_engineering_signals(structure):
     ):
         signals["has_docker"] = True
 
-    # --------------------------------------------------
-    # Dependency Management
-    # --------------------------------------------------
     dependency_indicators = [
         "requirements.txt",
         "pyproject.toml",

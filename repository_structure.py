@@ -61,8 +61,7 @@ def get_repo_structure(owner, repo, token=None):
 
             structure.append(path)
 
-            # Also add parent directory names so detectors can still match
-            # things like ".github", "docs", "tests", etc.
+            
             parts = path.split("/")
             for i in range(1, len(parts)):
                 seen_dirs.add("/".join(parts[:i]))

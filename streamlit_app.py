@@ -1,13 +1,21 @@
 import streamlit as st
-import plotly.graph_objects as go
 from datetime import datetime, timezone
 
 from app import analyze_repo
+from charts import radar_chart, bar_chart
 
+from ui_components import (
+    section_header,
+    metric_card,
+    render_score_badge,
+    render_tags,
+    render_signal_checklist,
+    render_note_cards,
+    render_verdict_card,
+    render_findings,
+    render_ai_cards,
+)
 
-# --------------------------------------------------
-# Page Config
-# --------------------------------------------------
 
 st.set_page_config(
     page_title="RepoLens · GitHub Repository Intelligence",
@@ -18,7 +26,7 @@ st.set_page_config(
 
 
 # --------------------------------------------------
-# Load CSS
+# CSS
 # --------------------------------------------------
 
 def load_css():
@@ -71,152 +79,87 @@ def days_ago(iso_str):
         return "unknown"
 
 
-def radar_chart(breakdown):
-    cats = [b["category"] for b in breakdown]
-    pcts = [round(b["points"] / b["max"] * 100) for b in breakdown]
+def render_score_explanation(result):
+    score = result["score"]
 
-    fig = go.Figure(go.Scatterpolar(
-        r=pcts + [pcts[0]],
-        theta=cats + [cats[0]],
-        fill="toself",
-        fillcolor="rgba(55,138,221,0.12)",
-        line=dict(color="#378ADD", width=1.5),
-        marker=dict(size=5, color="#378ADD"),
-    ))
+    if score >= 80:
+        verdict_color = "#34d399"
+        verdict = "Excellent Repository"
+    elif score >= 65:
+        verdict_color = "#6C8EFF"
+        verdict = "Good Repository"
+    elif score >= 50:
+        verdict_color = "#fbbf24"
+        verdict = "Average Repository"
+    else:
+        verdict_color = "#f87171"
+        verdict = "Needs Improvement"
 
-    fig.update_layout(
-        polar=dict(
-            bgcolor="#111827",
-            radialaxis=dict(
-                visible=True,
-                range=[0, 100],
-                tickfont=dict(color="#94a3b8", size=10),
-                gridcolor="rgba(255,255,255,.06)",
-                linecolor="rgba(255,255,255,.06)",
-            ),
-            angularaxis=dict(
-                tickfont=dict(color="#f1f5f9", size=11),
-                gridcolor="rgba(255,255,255,.06)",
-                linecolor="rgba(255,255,255,.06)",
-            ),
-        ),
-        paper_bgcolor="#111827",
-        plot_bgcolor="#111827",
-        margin=dict(t=20, b=20, l=30, r=30),
-        height=320,
-        showlegend=False,
-    )
-    return fig
-
-
-def bar_chart(breakdown):
-    cats = [b["category"] for b in breakdown]
-    pcts = [round(b["points"] / b["max"] * 100) for b in breakdown]
-
-    colors = [
-        "#1D9E75" if p >= 75 else "#378ADD" if p >= 50 else "#BA7517" if p >= 25 else "#E24B4A"
-        for p in pcts
-    ]
-
-    fig = go.Figure(go.Bar(
-        y=cats,
-        x=pcts,
-        orientation="h",
-        marker_color=colors,
-        text=[f"{p}%" for p in pcts],
-        textposition="outside",
-        textfont=dict(color="#94a3b8", size=11),
-    ))
-
-    fig.update_layout(
-        xaxis=dict(
-            range=[0, 115],
-            showgrid=False,
-            showticklabels=False,
-            zeroline=False,
-            color="#94a3b8",
-        ),
-        yaxis=dict(
-            tickfont=dict(color="#f1f5f9", size=11),
-            gridcolor="rgba(255,255,255,.06)",
-        ),
-        paper_bgcolor="#111827",
-        plot_bgcolor="#111827",
-        margin=dict(t=10, b=10, l=0, r=60),
-        height=260,
-        showlegend=False,
-    )
-    return fig
-
-
-def render_tags(items, class_name="tech-tag", empty_text="Not detected"):
-    if not items:
-        st.caption(empty_text)
-        return
-
-    html = "".join(
-        f'<span class="{class_name}">{item}</span>'
-        for item in items
-    )
-    st.markdown(html, unsafe_allow_html=True)
-
-
-def render_signal_checklist(signals):
-    signal_items = [
-        ("Tests", signals.get("has_tests", False)),
-        ("Documentation", signals.get("has_docs", False)),
-        ("CI/CD", signals.get("has_ci", False)),
-        ("Docker", signals.get("has_docker", False)),
-        ("Dependency Management", signals.get("has_dependency_management", False)),
-    ]
-
-    rows = ""
-    for label, value in signal_items:
-        badge_class = "signal-yes" if value else "signal-no"
-        badge_text = "Yes" if value else "No"
-        rows += f"""
-        <div class="signal-item">
-            <div class="signal-name">{label}</div>
-            <div class="signal-badge {badge_class}">{badge_text}</div>
+    st.markdown(f"""
+    <div class="dashboard-card">
+        <div class="repo-title">Overall Repository Score</div>
+        <div class="repo-desc">
+            RepoLens computes the overall score using weighted repository health
+            metrics including documentation, activity, community, hygiene, and issue health.
         </div>
-        """
+        <div style="margin-top:1rem;padding:1rem 1.1rem;border-left:3px solid {verdict_color};
+                    background:rgba(255,255,255,.03);border-radius:8px;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;
+                         font-weight:700;color:{verdict_color};">{score}/100</span>
+            <span style="color:#7b93b8;font-size:.9rem;margin-left:.6rem;">— {verdict}</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown(f'<div class="signal-grid">{rows}</div>', unsafe_allow_html=True)
+    st.markdown("### Category Breakdown")
 
+    bars_html = ""
+    for item in result["breakdown"]:
+        pct = round((item["points"] / item["max"]) * 100)
+        if pct >= 80:
+            color = "#34d399"
+        elif pct >= 60:
+            color = "#6C8EFF"
+        elif pct >= 40:
+            color = "#fbbf24"
+        else:
+            color = "#f87171"
 
-def render_note_cards(items, variant="info", empty_text=None):
-    if not items:
-        if empty_text:
-            st.caption(empty_text)
-        return
-
-    variant_class = {
-        "positive": "note-positive",
-        "warning": "note-warning",
-        "info": "note-info",
-    }.get(variant, "note-info")
-
-    title_map = {
-        "positive": "Positive",
-        "warning": "Risk",
-        "info": "Recommendation",
-    }
-    title_label = title_map.get(variant, "")
-
-    for item in items:
-        st.markdown(
-            f"""
-            <div class="note-card {variant_class}">
-                <div class="note-title">{title_label}</div>
-                {item}
-            </div>
-            """,
-            unsafe_allow_html=True,
+        bars_html += (
+            f'<div style="margin-bottom:.85rem;">'
+            f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">'
+            f'<span style="font-size:.82rem;font-weight:500;color:#c7d4f0;">{item["category"]}</span>'
+            f'<span style="font-size:.78rem;font-family:JetBrains Mono,monospace;color:{color};font-weight:600;">'
+            f'{item["points"]:.0f}<span style="color:#435975;">/{item["max"]}</span></span>'
+            f'</div>'
+            f'<div style="background:#213044;border-radius:999px;height:6px;overflow:hidden;">'
+            f'<div style="width:{pct}%;height:100%;background:{color};border-radius:999px;"></div>'
+            f'</div>'
+            f'</div>'
         )
+
+    legend_html = (
+        '<div style="display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;margin-top:1.1rem;'
+        'padding-top:.9rem;border-top:1px solid rgba(99,155,255,.1);">'
+        '<span style="font-size:.78rem;color:#7b93b8;display:flex;align-items:center;gap:5px;">'
+        '<span style="width:8px;height:8px;border-radius:50%;background:#34d399;display:inline-block;"></span>80–100 Excellent</span>'
+        '<span style="font-size:.78rem;color:#7b93b8;display:flex;align-items:center;gap:5px;">'
+        '<span style="width:8px;height:8px;border-radius:50%;background:#6C8EFF;display:inline-block;"></span>60–79 Good</span>'
+        '<span style="font-size:.78rem;color:#7b93b8;display:flex;align-items:center;gap:5px;">'
+        '<span style="width:8px;height:8px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>40–59 Average</span>'
+        '<span style="font-size:.78rem;color:#7b93b8;display:flex;align-items:center;gap:5px;">'
+        '<span style="width:8px;height:8px;border-radius:50%;background:#f87171;display:inline-block;"></span>Below 40 Needs work</span>'
+        '</div>'
+    )
+
+    st.markdown(
+        f'<div class="dashboard-card" style="margin-top:.5rem;">{bars_html}{legend_html}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # --------------------------------------------------
-# Hero / Input
+# Hero
 # --------------------------------------------------
 
 st.markdown("""
@@ -236,7 +179,7 @@ with input_col:
     repo_input = st.text_input(
         "GitHub Repository",
         placeholder="e.g. streamlit/streamlit",
-        label_visibility="collapsed"
+        label_visibility="collapsed",
     )
 
 with button_col:
@@ -250,7 +193,7 @@ with st.expander("GitHub token (optional — raises API rate limits)"):
         placeholder="ghp_...",
         label_visibility="collapsed",
     )
-    st.caption("A read-only token is enough. It is only used for GitHub API requests and is not stored.")
+    st.caption("A read-only token is enough. Used only for GitHub API requests and never stored.")
 
 token = token.strip() if token else None
 
@@ -263,7 +206,7 @@ if analyze_clicked:
     repo_value = repo_input.strip()
 
     if not repo_value or repo_value.count("/") != 1:
-        st.warning("Enter a repository in the format owner/repo, for example streamlit/streamlit.")
+        st.warning("Enter a repository in the format owner/repo — for example streamlit/streamlit.")
     else:
         owner, repo = repo_value.split("/", 1)
 
@@ -271,58 +214,46 @@ if analyze_clicked:
             result = analyze_repo(owner.strip(), repo.strip(), token or None)
 
         if result is None:
-            st.error("Repository not found, API limit reached, or repository data could not be fetched.")
+            st.error("Repository not found, API limit reached, or data could not be fetched.")
         else:
-            score = result["score"]
-            cls = score_class(score)
+            score      = result["score"]
+            cls        = score_class(score)
             assessment = result["assessment"]
 
             # --------------------------------------------------
             # Overview
             # --------------------------------------------------
-            st.markdown('<div class="section-header">Overview</div>', unsafe_allow_html=True)
+            section_header("Overview")
 
             c0, c1, c2, c3, c4, c5 = st.columns([1.25, 1, 1, 1, 1, 1])
 
             with c0:
-                st.markdown(f"""
-                <div style="text-align:center; padding:.4rem 0;">
-                    <div class="score-badge {cls}">{score}</div>
-                    <div style="font-size:.72rem; color:#94a3b8; margin-top:.4rem; text-transform:uppercase; letter-spacing:.07em;">Overall Score</div>
-                </div>
-                """, unsafe_allow_html=True)
+                render_score_badge(score, cls)
 
             metric_items = [
                 (result["engineering_score"], "Engineering"),
-                (fmt_number(result["stars"]), "Stars"),
-                (fmt_number(result["forks"]), "Forks"),
-                (str(result["contributors"]), "Contributors"),
-                (str(result["open_issues"]), "Open Issues"),
+                (fmt_number(result["stars"]),  "Stars"),
+                (fmt_number(result["forks"]),  "Forks"),
+                (str(result["contributors"]),  "Contributors"),
+                (str(result["open_issues"]),   "Open Issues"),
             ]
 
             for col, (val, lbl) in zip([c1, c2, c3, c4, c5], metric_items):
                 with col:
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <div class="lbl">{lbl}</div>
-                        <div class="val">{val}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    metric_card(val, lbl)
 
             # --------------------------------------------------
             # Executive Summary
             # --------------------------------------------------
-            st.markdown('<div class="section-header">Executive Summary</div>', unsafe_allow_html=True)
+            section_header("Executive Summary")
 
             ex1, ex2 = st.columns([3, 2])
 
             with ex1:
-                topic_html = ""
-                if result["topics"]:
-                    topic_html = "".join(
-                        f"<span class='topic-chip'>{topic}</span>"
-                        for topic in result["topics"][:8]
-                    )
+                topic_html = "".join(
+                    f"<span class='topic-chip'>{t}</span>"
+                    for t in result["topics"][:8]
+                ) if result["topics"] else ""
 
                 st.markdown(f"""
                 <div class="dashboard-card">
@@ -334,30 +265,17 @@ if analyze_clicked:
                         <span>🕑 Pushed {days_ago(result['pushed_at'])}</span>
                         <span>🏷 {result['releases']} releases</span>
                     </div>
-                    <div style="margin-top:.9rem;">
-                        {topic_html}
-                    </div>
+                    <div style="margin-top:.9rem;">{topic_html}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
             with ex2:
-                concern_count = len(assessment["concerns"])
-                positive_count = len(assessment["positives"])
-
-                st.markdown(f"""
-                <div class="verdict-card">
-                    <div class="verdict-label">Repository Health Verdict</div>
-                    <div class="verdict-value">{assessment['verdict']}</div>
-                    <div class="verdict-sub">
-                        {positive_count} positive signals detected · {concern_count} active concern(s)
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                render_verdict_card(assessment)
 
             # --------------------------------------------------
-            # Health Review + Recommendations
+            # Health Review
             # --------------------------------------------------
-            st.markdown('<div class="section-header">Health Review</div>', unsafe_allow_html=True)
+            section_header("Health Review")
 
             h1, h2, h3 = st.columns([1.15, 1.15, 1.3])
 
@@ -366,7 +284,7 @@ if analyze_clicked:
                 render_note_cards(
                     assessment["positives"],
                     variant="positive",
-                    empty_text="No strong positive signals highlighted."
+                    empty_text="No strong positive signals highlighted.",
                 )
 
             with h2:
@@ -374,7 +292,7 @@ if analyze_clicked:
                 render_note_cards(
                     assessment["concerns"],
                     variant="warning",
-                    empty_text="No major risks detected."
+                    empty_text="No major risks detected.",
                 )
 
             with h3:
@@ -382,19 +300,18 @@ if analyze_clicked:
                 render_note_cards(
                     result["recommendations"],
                     variant="info",
-                    empty_text="No major improvements recommended."
+                    empty_text="No major improvements recommended.",
                 )
 
             # --------------------------------------------------
-            # Technology + Engineering Snapshot
+            # Technology & Engineering Snapshot
             # --------------------------------------------------
-            st.markdown('<div class="section-header">Technology & Engineering Snapshot</div>', unsafe_allow_html=True)
+            section_header("Technology & Engineering Snapshot")
 
             snap1, snap2 = st.columns([1.2, 1])
 
             with snap1:
                 st.markdown("### Technology Stack")
-
                 t1, t2, t3 = st.columns(3)
                 tech = result["technologies"]
 
@@ -404,7 +321,7 @@ if analyze_clicked:
 
                 with t2:
                     st.markdown("**Frontend**")
-                    frontend_items = result["frontend_stack"] if result["frontend_stack"] else tech["frontend"]
+                    frontend_items = result["frontend_stack"] or tech["frontend"]
                     render_tags(frontend_items, class_name="tech-tag")
 
                 with t3:
@@ -415,7 +332,7 @@ if analyze_clicked:
                 render_tags(
                     result["dependencies"],
                     class_name="dep-tag",
-                    empty_text="No major libraries detected."
+                    empty_text="No major libraries detected.",
                 )
 
             with snap2:
@@ -425,7 +342,7 @@ if analyze_clicked:
             # --------------------------------------------------
             # Engineering Review
             # --------------------------------------------------
-            st.markdown('<div class="section-header">Engineering Review</div>', unsafe_allow_html=True)
+            section_header("Engineering Review")
 
             er1, er2 = st.columns(2)
 
@@ -434,7 +351,7 @@ if analyze_clicked:
                 render_note_cards(
                     result["engineering_strengths"],
                     variant="positive",
-                    empty_text="No explicit engineering strengths detected."
+                    empty_text="No explicit engineering strengths detected.",
                 )
 
             with er2:
@@ -442,76 +359,69 @@ if analyze_clicked:
                 render_note_cards(
                     result["engineering_weaknesses"],
                     variant="warning",
-                    empty_text="No major engineering gaps detected."
+                    empty_text="No major engineering gaps detected.",
                 )
 
             # --------------------------------------------------
             # Score Breakdown
             # --------------------------------------------------
-            st.markdown('<div class="section-header">Score Breakdown</div>', unsafe_allow_html=True)
+            section_header("Score Breakdown")
 
             ch1, ch2 = st.columns(2)
+
             with ch1:
-                st.plotly_chart(radar_chart(result["breakdown"]), width="stretch")
+                with st.container(border=True):
+                    st.plotly_chart(radar_chart(result["breakdown"]), use_container_width=True)
+
             with ch2:
-                st.plotly_chart(bar_chart(result["breakdown"]), width="stretch")
+                with st.container(border=True):
+                    st.plotly_chart(bar_chart(result["breakdown"]), use_container_width=True)
+
+            # --------------------------------------------------
+            # Score Explanation
+            # --------------------------------------------------
+            section_header("Score Explanation")
+            render_score_explanation(result)
+
+            # --------------------------------------------------
+            # Methodology
+            # --------------------------------------------------
+            section_header("Methodology")
+
+            with st.expander("How does RepoLens calculate repository quality?"):
+                st.markdown("""
+### Overall Score
+
+| Category | Weight |
+|---|---|
+| Documentation | 25 |
+| Activity | 25 |
+| Community | 20 |
+| Project Hygiene | 20 |
+| Issue Health | 10 |
+
+### Engineering Score
+
+Engineering quality considers automated tests, documentation, CI/CD, Docker support, and dependency management.
+
+RepoLens scans repository metadata, file structure, and dependency files to produce heuristic repository health scores.
+""")
 
             # --------------------------------------------------
             # Findings
             # --------------------------------------------------
-            st.markdown('<div class="section-header">Findings</div>', unsafe_allow_html=True)
+            section_header("Findings")
 
             sw1, sw2 = st.columns(2)
 
             with sw1:
-                st.markdown("### Strengths")
-                if result["strengths"]:
-                    for s in result["strengths"]:
-                        st.markdown(f"""
-                        <div class="pill pill-strength">
-                            <div>
-                                <div class="pill-label">{s['label']}</div>
-                                <div class="pill-detail">{s['detail']}</div>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                else:
-                    st.caption("No notable strengths detected.")
+                render_findings("Strengths", result["strengths"], "pill-strength")
 
             with sw2:
-                st.markdown("### Weaknesses")
-                if result["weaknesses"]:
-                    for w in result["weaknesses"]:
-                        st.markdown(f"""
-                        <div class="pill pill-weakness">
-                            <div>
-                                <div class="pill-label">{w['label']}</div>
-                                <div class="pill-detail">{w['detail']}</div>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                else:
-                    st.caption("No major weaknesses detected.")
+                render_findings("Weaknesses", result["weaknesses"], "pill-weakness")
 
             # --------------------------------------------------
-            # AI Analysis Placeholder
+            # AI Repository Assessment
             # --------------------------------------------------
-            st.markdown('<div class="section-header">AI Analysis</div>', unsafe_allow_html=True)
-            st.markdown("""
-            <div class="dashboard-card">
-                <div class="repo-title">AI Summary</div>
-                <div class="repo-desc" style="margin-bottom:0;">
-                    AI-generated repository analysis is temporarily disabled in this deployment build.
-                    RepoLens analysis, scoring, health checks, and engineering review remain fully available.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            # --------------------------------------------------
-            # Raw JSON
-            # --------------------------------------------------
-            with st.expander("Raw JSON data"):
-                safe = {k: v for k, v in result.items() if k not in ("strengths", "weaknesses", "breakdown")}
-                safe["strengths"] = [s["label"] for s in result["strengths"]]
-                safe["weaknesses"] = [w["label"] for w in result["weaknesses"]]
-                st.json(safe)
+            section_header("AI Repository Assessment")
+            render_ai_cards(result["ai_summary"])

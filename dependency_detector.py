@@ -14,10 +14,10 @@ def _normalize_package_name(dep: str) -> str:
     """
     dep = dep.strip().lower()
 
-    # Remove version specifiers
+   
     dep = re.split(r"[<>=!~]", dep)[0].strip()
 
-    # Remove extras like pandas[performance]
+
     dep = dep.split("[")[0].strip()
 
     return dep
@@ -66,14 +66,12 @@ def detect_dependencies_from_files(
         "svelte": "Svelte",
     }
 
-    # --------------------------------------------------
-    # Parse pyproject.toml
-    # --------------------------------------------------
+    
     if pyproject_content:
         try:
             data = tomllib.loads(pyproject_content)
 
-            # PEP 621 style: [project.dependencies]
+           
             project_dependencies = (
                 data.get("project", {})
                 .get("dependencies", [])
@@ -84,7 +82,7 @@ def detect_dependencies_from_files(
                 if package_name:
                     packages.add(package_name)
 
-            # Poetry style: [tool.poetry.dependencies]
+           
             poetry_dependencies = (
                 data.get("tool", {})
                 .get("poetry", {})
@@ -99,7 +97,7 @@ def detect_dependencies_from_files(
         except Exception:
             pass
 
-        # Fallback: keyword scan if structured parse didn't find anything
+       
         if not packages:
             text = pyproject_content.lower()
 
@@ -107,9 +105,7 @@ def detect_dependencies_from_files(
                 if package in text:
                     packages.add(package)
 
-    # --------------------------------------------------
-    # Parse requirements.txt
-    # --------------------------------------------------
+    
     if requirements_content:
         for line in requirements_content.splitlines():
             line = line.strip().lower()
@@ -121,16 +117,12 @@ def detect_dependencies_from_files(
             if package_name:
                 packages.add(package_name)
 
-    # --------------------------------------------------
-    # Convert Python package names to display labels
-    # --------------------------------------------------
+    
     for package, display_name in known_python_packages.items():
         if package in packages:
             deps.append(display_name)
 
-    # --------------------------------------------------
-    # Parse package.json properly
-    # --------------------------------------------------
+    
     if package_json_content:
         try:
             data = json.loads(package_json_content)
@@ -152,7 +144,7 @@ def detect_dependencies_from_files(
                     deps.append(frontend_packages[key])
 
         except Exception:
-            # fallback to plain text scan
+           
             text = package_json_content.lower()
 
             for key, label in frontend_packages.items():
